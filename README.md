@@ -1,4 +1,4 @@
-# Subscription & Bill Killer
+# killBill
 
 > An agentic Jac app that audits a year of bank-statement charges, flags the forgotten and overpriced subscriptions, and drafts your cancellation emails.
 

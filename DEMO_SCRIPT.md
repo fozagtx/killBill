@@ -10,7 +10,7 @@ Track: **Fintech** · Targets: Best Demo ($200), Best Startup Idea (PearVC inter
 
 > "The average American spends $273 a month on subscriptions — and forgets about 40% of them. Banks won't tell you which ones to kill. So I built an agent that will. It reads your bank statement, decides what's overpriced, and drafts the cancellation emails for you."
 
-(Cut to title card: **Subscription Killer · built on Jac**)
+(Cut to title card: **killBill · built on Jac**)
 
 ---
 
@@ -67,7 +67,7 @@ Scroll back up to the hero:
 
 > "Built on Jac and byLLM in 16 hours for JacHacks Spring. Next steps: Plaid integration so users don't upload CSVs, and a one-click 'cancel for me' that actually sends the email through a service like DoNotPay's API. The agent is the differentiator — it doesn't just find subscriptions, it tells you *why* each one is wasteful, with reasoning that references the rest of your spending."
 
-(End card: GitHub link + "Subscription Killer · Jac + byLLM")
+(End card: GitHub link + "killBill · Jac + byLLM")
 
 ---
 

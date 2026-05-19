@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the Subscription Killer CLI demo end-to-end.
+# Run the killBill CLI demo end-to-end.
 #
 # Usage:
 #   ./run_demo.sh                 # runs the full agent against the sample CSV
