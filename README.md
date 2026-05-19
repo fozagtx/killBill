@@ -1,8 +1,12 @@
-# killBill
+<p align="center">
+  <img src="web/logo.png" alt="killBill" width="160" />
+</p>
 
-> An agentic Jac app that audits a year of bank-statement charges, flags the forgotten and overpriced subscriptions, and drafts your cancellation emails.
+<h1 align="center">killBill</h1>
 
-**Track:** Fintech · **Built for:** JacHacks Spring · **Stack:** [Jac](https://docs.jaseci.org/) + byLLM
+<p align="center">An agentic Jac app that audits a year of bank-statement charges, flags the forgotten and overpriced subscriptions, and drafts your cancellation emails.</p>
+
+<p align="center"><strong>Track:</strong> Fintech · <strong>Built for:</strong> JacHacks Spring · <strong>Stack:</strong> <a href="https://docs.jaseci.org/">Jac</a> + byLLM</p>
 
 ---
 
