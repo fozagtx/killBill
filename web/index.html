@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Subscription Killer — find your forgotten subs</title>
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --panel: #14141a;
+    --panel-2: #1a1a22;
+    --line: #26262f;
+    --text: #ececf2;
+    --muted: #8a8a96;
+    --green: #29d28e;
+    --red:   #ff5c5c;
+    --amber: #f5b450;
+    --accent: #1f7a55;        /* deep-green progress, matches semantic palette */
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+  header h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  header p  { color: var(--muted); margin: 0 0 32px; font-size: 14px; }
+
+  .drop {
+    border: 1.5px dashed #2e2e3a;
+    border-radius: 14px;
+    padding: 36px;
+    text-align: center;
+    background: var(--panel);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .drop:hover, .drop.over { border-color: var(--accent); background: #181820; }
+  .drop input { display: none; }
+  .drop b { color: var(--text); }
+  .drop small { display:block; margin-top:6px; color: var(--muted); }
+
+  .hero {
+    margin: 24px 0;
+    padding: 28px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1a1a26 0%, #14141a 100%);
+    border: 1px solid var(--line);
+  }
+  .hero .label { color: var(--muted); text-transform: uppercase; font-size: 11px; letter-spacing: .12em; }
+  .hero .big { font-size: 64px; font-weight: 700; letter-spacing: -0.03em; color: var(--green);
+    line-height: 1; margin: 8px 0 4px; transition: color .3s; }
+  .hero .sub { color: var(--muted); font-size: 14px; }
+  .hero .row { display: flex; gap: 32px; flex-wrap: wrap; }
+  .hero .row > div { flex: 1 1 200px; }
+
+  .progress {
+    margin: 12px 0; height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden;
+  }
+  .progress > span { display:block; height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+
+  .list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card .top { display: flex; align-items: center; gap: 12px; }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  }
+  .pill.keep      { background: rgba(41,210,142,.12);  color: var(--green); }
+  .pill.downgrade { background: rgba(245,180,80,.12);  color: var(--amber); }
+  .pill.cancel    { background: rgba(255,92,92,.12);   color: var(--red); }
+
+  .card .merchant { font-weight: 600; font-size: 16px; }
+  .card .cost { color: var(--muted); font-size: 13px; }
+  .card .reason { margin-top: 8px; color: #c8c8d2; font-size: 14px; line-height: 1.45; }
+  .card .alt { margin-top: 6px; font-size: 13px; color: #a5a5b5; }
+  .card .alt b { color: var(--green); }
+  .card .savings { margin-left: auto; text-align: right; }
+  .card .savings .m { color: var(--green); font-weight: 600; font-size: 15px; }
+  .card .savings .y { color: var(--muted); font-size: 12px; }
+  .card details { margin-top: 12px; }
+  .card details summary { cursor: pointer; color: var(--accent); font-size: 13px; user-select: none; }
+  .card details[open] summary { color: var(--text); }
+  .email {
+    margin-top: 10px; padding: 12px 14px; border-radius: 8px; background: #0d0d12;
+    border: 1px solid var(--line); font-size: 13px; line-height: 1.55; white-space: pre-wrap;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .email .h { color: var(--muted); }
+  .empty { text-align:center; padding: 32px; color: var(--muted); }
+
+  .agent-log {
+    margin: 14px 0 4px;
+    padding: 10px 14px;
+    background: #0d0d12;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    color: #b4b4bf;
+    max-height: 160px;
+    overflow: auto;
+  }
+  .agent-log .step { color: var(--accent); }
+
+  footer { color: var(--muted); font-size: 12px; margin-top: 40px; text-align: center; }
+  footer code { background: var(--panel); padding: 2px 6px; border-radius: 4px; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Subscription Killer</h1>
+    <p>Drop a 12-month bank statement. An agent figures out what you'd save by killing forgotten subs.</p>
+  </header>
+
+  <label class="drop" id="drop">
+    <input type="file" id="file" accept=".csv" />
+    <div><b>Drop a bank statement CSV</b> or click to choose</div>
+    <small>Expected columns: <code>date, description, amount</code> &nbsp;·&nbsp; the demo sample lives at <code>samples/statement_001.csv</code></small>
+  </label>
+
+  <div class="progress" id="prog" style="display:none"><span></span></div>
+  <div class="agent-log" id="log" style="display:none"></div>
+
+  <div class="hero" id="hero" style="display:none">
+    <div class="row">
+      <div>
+        <div class="label">You could save</div>
+        <div class="big" id="annual">$0</div>
+        <div class="sub">per year</div>
+      </div>
+      <div>
+        <div class="label">Monthly</div>
+        <div class="big" id="monthly" style="font-size:36px">$0</div>
+        <div class="sub">recurring cost killed</div>
+      </div>
+      <div>
+        <div class="label">Verdicts</div>
+        <div class="big" id="counts" style="font-size:36px">0 / 0 / 0</div>
+        <div class="sub">cancel / downgrade / keep</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list" id="list"></div>
+
+  <footer>
+    Powered by <a href="https://docs.jaseci.org/" style="color:var(--accent)">Jac</a> + byLLM agentic tool calling.
+    Backend: <code>jac serve audit.jac</code>.
+  </footer>
+</div>
+
+<script>
+const drop = document.getElementById('drop');
+const file = document.getElementById('file');
+const prog = document.getElementById('prog');
+const progBar = prog.querySelector('span');
+const log  = document.getElementById('log');
+const hero = document.getElementById('hero');
+const list = document.getElementById('list');
+const annualEl = document.getElementById('annual');
+const monthlyEl = document.getElementById('monthly');
+const countsEl = document.getElementById('counts');
+
+const API = "http://127.0.0.1:8000";
+let TOKEN = localStorage.getItem('subkiller_token') || '';
+
+// Auto-register + login a throwaway demo user so the walker accepts requests.
+// jac-cloud requires Bearer auth on walker endpoints by default.
+async function ensureAuth() {
+  if (TOKEN) return TOKEN;
+  const email = 'demo+' + Math.random().toString(36).slice(2,8) + '@example.com';
+  const password = 'Demo' + Math.random().toString(36).slice(2,10) + '!1';
+  try {
+    await fetch(API + '/user/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identities: [{ type: 'email', value: email }],
+        credential:  { type: 'password', password: password },
+      })
+    });
+    const r = await fetch(API + '/user/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identity: { type: 'email', value: email },
+        credential: { type: 'password', password: password },
+      })
+    });
+    const j = await r.json();
+    TOKEN = j.data?.token || '';
+    if (TOKEN) localStorage.setItem('subkiller_token', TOKEN);
+  } catch (e) {
+    console.warn('auth setup failed', e);
+  }
+  return TOKEN;
+}
+
+['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.add('over');
+}));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.remove('over');
+}));
+drop.addEventListener('drop', ev => {
+  if (ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]);
+});
+file.addEventListener('change', () => {
+  if (file.files[0]) handleFile(file.files[0]);
+});
+
+async function handleFile(f) {
+  // The jac-cloud walker reads from a server-side path. For demos we upload
+  // by POSTing csv_text to a thin wrapper; if no wrapper is available we
+  // just point the walker at the bundled sample CSV.
+  const text = await f.text();
+  log.style.display = 'block';
+  log.innerHTML = '';
+  pushLog('uploaded ' + f.name + ' (' + text.split('\n').length + ' lines)');
+  pushLog('planning audit...');
+  startProgress();
+
+  let report;
+  try {
+    const tok = await ensureAuth();
+    const res = await fetch(API + '/walker/AuditStatement', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(tok ? { 'Authorization': 'Bearer ' + tok } : {}),
+      },
+      body: JSON.stringify({ csv_text: text, csv_path: 'samples/statement_001.csv', persist: false }),
+    });
+    const data = await res.json();
+    const inner = data?.data || data;
+    report = (inner.reports && inner.reports[0]) || null;
+    if (!report) throw new Error('empty agent report');
+  } catch (e) {
+    pushLog('server error: ' + e.message);
+    pushLog('falling back to cached demo report');
+    report = await fetch('demo_report.json').then(r => r.json()).catch(() => null);
+  }
+  stopProgress();
+  if (!report) {
+    pushLog('no report');
+    return;
+  }
+  pushLog('agent finished — ' + report.subscription_count + ' subscriptions reviewed');
+  renderReport(report);
+}
+
+function pushLog(s) {
+  const div = document.createElement('div');
+  div.className = 'step';
+  div.textContent = '> ' + s;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+let progT;
+function startProgress() {
+  prog.style.display = 'block';
+  let w = 2;
+  progT = setInterval(() => { w = Math.min(95, w + 1.5); progBar.style.width = w + '%'; }, 400);
+}
+function stopProgress() {
+  clearInterval(progT);
+  progBar.style.width = '100%';
+  setTimeout(() => { prog.style.display = 'none'; progBar.style.width = '0%'; }, 600);
+}
+
+function renderReport(r) {
+  hero.style.display = 'block';
+  // animate the headline
+  const target = r.annual_savings;
+  let cur = 0;
+  const dur = 1100;
+  const t0 = performance.now();
+  function tick(now) {
+    const k = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - k, 3);
+    cur = target * eased;
+    annualEl.textContent = '$' + cur.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (k < 1) requestAnimationFrame(tick);
+    else annualEl.textContent = '$' + target.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  requestAnimationFrame(tick);
+  monthlyEl.textContent = '$' + r.monthly_savings.toFixed(2);
+
+  const counts = { CANCEL: 0, DOWNGRADE: 0, KEEP: 0 };
+  for (const s of r.subscriptions) counts[s.verdict] = (counts[s.verdict] || 0) + 1;
+  countsEl.textContent = `${counts.CANCEL} / ${counts.DOWNGRADE} / ${counts.KEEP}`;
+
+  list.innerHTML = '';
+  // Order: cancel first, then downgrade, then keep
+  const order = { CANCEL: 0, DOWNGRADE: 1, KEEP: 2 };
+  const subs = [...r.subscriptions].sort((a,b) => (order[a.verdict] ?? 3) - (order[b.verdict] ?? 3));
+  for (const s of subs) list.appendChild(renderCard(s));
+}
+
+function renderCard(s) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const v = (s.verdict || 'KEEP').toLowerCase();
+  card.innerHTML = `
+    <div class="top">
+      <span class="pill ${v}">${s.verdict}</span>
+      <div>
+        <div class="merchant">${escape(s.merchant)}</div>
+        <div class="cost">$${(s.monthly_cost||0).toFixed(2)}/mo · $${((s.monthly_cost||0)*12).toFixed(0)}/yr</div>
+      </div>
+      <div class="savings">
+        ${s.monthly_savings > 0 ? `<div class="m">save $${s.monthly_savings.toFixed(2)}/mo</div><div class="y">$${s.annual_savings.toFixed(0)}/yr</div>` : ''}
+      </div>
+    </div>
+    ${s.reason ? `<div class="reason">${escape(s.reason)}</div>` : ''}
+    ${s.cheaper_alternative ? `<div class="alt"><b>↓ alt:</b> ${escape(s.cheaper_alternative)}</div>` : ''}
+    ${s.email_subject ? `
+      <details>
+        <summary>show drafted cancellation email →</summary>
+        <div class="email"><span class="h">To:</span> ${escape(s.email_send_to)}
+<span class="h">Subject:</span> ${escape(s.email_subject)}
+
+${escape(s.email_body)}</div>
+      </details>` : ''}
+  `;
+  return card;
+}
+
+function escape(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>

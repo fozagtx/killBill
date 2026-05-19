@@ -1,0 +1,7 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+.jac_gen/
+__jac_gen__/
+*.session
