@@ -10,16 +10,16 @@
 
 Drop a 12-month CSV bank statement. The app:
 
-1. **Detects recurring charges** deterministically — clusters by normalized merchant name + similar amount + ~monthly cadence (plain Python, no LLM tokens burned).
+1. **Detects recurring charges** deterministically - clusters by normalized merchant name + similar amount + ~monthly cadence (plain Python, no LLM tokens burned).
 2. **Hands each charge to an agent** that decides which tools to call:
-   - `enrich_merchant` — clean name, category, market-typical price
-   - `judge_value` — KEEP / DOWNGRADE / CANCEL with a reason that references your *other* subs
-   - `find_cheaper_alternative` — concrete tier-downgrade or substitute
-   - `draft_cancellation_email` — subject, body, send-to channel
+   - `enrich_merchant` - clean name, category, market-typical price
+   - `judge_value` - KEEP / DOWNGRADE / CANCEL with a reason that references your *other* subs
+   - `find_cheaper_alternative` - concrete tier-downgrade or substitute
+   - `draft_cancellation_email` - subject, body, send-to channel
 3. **Persists the audit graph** under Jac's `root` (Statement → Subscription → Recommendation → Email nodes survive across runs).
-4. **Reports the headline number** — total monthly + annual savings.
+4. **Reports the headline number** - total monthly + annual savings.
 
-The agentic part is in `audit.jac` — see `analyze_one_subscription` on line ~129. That one `by llm(tools=[...])` call lets the LLM plan and dispatch tools per subscription. The model picks the order. That's the "real agent" bar JacHacks judges asked for, not an API-wrapper.
+The agentic part is in `audit.jac` - see `analyze_one_subscription` on line ~129. That one `by llm(tools=[...])` call lets the LLM plan and dispatch tools per subscription. The model picks the order. That's the "real agent" bar JacHacks judges asked for, not an API-wrapper.
 
 ---
 
@@ -42,7 +42,7 @@ cp .env.example .env
 
 | env var | model used | notes |
 |---|---|---|
-| `FEATHERLESS_API_KEY` | `Qwen/Qwen2.5-72B-Instruct` via Featherless (OpenAI-compatible) | **Recommended** — free tier, solid tool calling. |
+| `FEATHERLESS_API_KEY` | `openai/Qwen/Qwen2.5-14B-Instruct` via Featherless (OpenAI-compat) | **Recommended** - free tier, solid tool calling, ~5s/tool-call. Override via `SUBKILLER_MODEL` (e.g. the 72B variant for higher quality at higher latency). |
 | `ANTHROPIC_API_KEY`   | `claude-sonnet-4-20250514` | Best quality, costs money. |
 | `OPENAI_API_KEY`      | `gpt-4o-mini` | Cheap, good. |
 | `GEMINI_API_KEY`      | `gemini/gemini-2.5-flash` | Free tier; rate-limit sensitive. |
@@ -75,7 +75,7 @@ The output prints a per-subscription verdict + the headline `$X saved per year` 
 jac start audit.jac --port 8000 --no_client
 ```
 
-jac-cloud requires bearer auth on walker endpoints by default — register a user and grab a token:
+jac-cloud requires bearer auth on walker endpoints by default - register a user and grab a token:
 
 ```bash
 curl -sX POST http://127.0.0.1:8000/user/register -H 'Content-Type: application/json' \
@@ -128,13 +128,13 @@ subscription-killer/
 
 ## Sample input → sample output
 
-The bundled `samples/statement_001.csv` is a 12-month statement with 13 monthly recurring charges totaling **$418.28/mo** ($5,019/yr). The agent identifies:
+The bundled `samples/statement_001.csv` is a 12-month statement with 13 monthly recurring charges totaling **$418.28/mo** ($5,019/yr). On the default Qwen 14B backend, the agent flags **~$1,800/yr in savings**, including:
 
-- **Hulu** ($17.99/mo) — DOWNGRADE: "you already pay for Netflix Premium, content overlap is high"
-- **Adobe Creative Cloud** ($54.99/mo) — DOWNGRADE: "Canva Pro at $12.99/mo overlaps with most of this"
-- **Planet Fitness** ($24.99/mo) — CANCEL: "8 months, no adjacent fitness-related spend"
-- **Audible** ($14.95/mo) — CANCEL: "no companion Amazon book/audiobook activity"
-- **NYTimes** ($17.00/mo) — DOWNGRADE: "basic digital is $4/mo"
+- **Hulu** ($17.99/mo) - DOWNGRADE: "you already pay for Netflix Premium, content overlap is high"
+- **Adobe Creative Cloud** ($54.99/mo) - DOWNGRADE: "Canva Pro at $12.99/mo overlaps with most of this"
+- **Planet Fitness** ($24.99/mo) - CANCEL: "8 months, no adjacent fitness-related spend"
+- **Audible** ($14.95/mo) - CANCEL: "no companion Amazon book/audiobook activity"
+- **NYTimes** ($17.00/mo) - DOWNGRADE: "basic digital is $4/mo"
 
 …plus a drafted cancellation email for each CANCEL.
 
@@ -142,10 +142,10 @@ The bundled `samples/statement_001.csv` is a 12-month statement with 13 monthly 
 
 ## What's "agentic" about this
 
-- **Planning** — `analyze_one_subscription` decomposes "audit this charge" into 4 sub-decisions and the LLM picks the order.
-- **Tool use** — 4 typed tool functions (`enrich_merchant`, `judge_value`, `find_cheaper_alternative`, `draft_cancellation_email`); the agent decides which fire and skips e.g. the email step for KEEP/DOWNGRADE verdicts.
-- **Memory** — `BankStatement`, `Subscription`, `KillRecommendation`, `CancellationEmail` nodes connect to `root` and persist across `jac run` invocations (Jac OSP).
-- **Multi-step reasoning** — verdict explanations reference the user's *other* subscriptions ("you already pay for X"), which requires the model to hold the full sub-portfolio in context.
+- **Planning** - `analyze_one_subscription` decomposes "audit this charge" into 4 sub-decisions and the LLM picks the order.
+- **Tool use** - 4 typed tool functions (`enrich_merchant`, `judge_value`, `find_cheaper_alternative`, `draft_cancellation_email`); the agent decides which fire and skips e.g. the email step for KEEP/DOWNGRADE verdicts.
+- **Memory** - `BankStatement`, `Subscription`, `KillRecommendation`, `CancellationEmail` nodes connect to `root` and persist across `jac run` invocations (Jac OSP).
+- **Multi-step reasoning** - verdict explanations reference the user's *other* subscriptions ("you already pay for X"), which requires the model to hold the full sub-portfolio in context.
 
 ## Jac features used
 
@@ -160,10 +160,10 @@ The bundled `samples/statement_001.csv` is a 12-month statement with 13 monthly 
 
 ## Limitations / known issues
 
-- Featherless 72B model is slow (~30s per per-sub agent call). The full 13-sub audit takes ~6-10 min wall-clock. Use Anthropic/OpenAI keys for a faster demo.
+- On the default Qwen 14B Featherless backend each per-sub agent call takes ~5s, so the full 13-sub audit lands around 60–90s wall-clock. Swap to `SUBKILLER_MODEL=openai/Qwen/Qwen2.5-72B-Instruct` for higher quality (and proportionally higher latency), or use an Anthropic/OpenAI key for fastest demos.
 - The cluster-detector treats anything monthly + ≥3 charges as recurring; a few real-world ambiguities (e.g. a coincidental quarterly Target charge) get filtered when cadence isn't monthly.
 - `jac serve` walker endpoints inherit Jac's `jac-cloud` defaults; for a public demo you'd want auth + rate limiting.
 
 ## License
 
-MIT — built for JacHacks Spring 2026, fictional data only.
+MIT - built for JacHacks Spring 2026, fictional data only.

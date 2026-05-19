@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>killBill — find your forgotten subs</title>
+<title>killBill - find your forgotten subs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif&family=Space+Mono&display=swap" rel="stylesheet" />
 <style>
   :root {
-    /* fonts — Instrument family, exclusively */
+    /* fonts - Instrument family, exclusively */
     --font-sans: 'Instrument Sans', system-ui, -apple-system, sans-serif;
     --font-serif: 'Instrument Serif', Georgia, serif;
     --font-mono: 'Space Mono', ui-monospace, Menlo, monospace;
 
-    /* brand — navy + blue + sky */
+    /* brand - navy + blue + sky */
     --navy: #002259;
     --blue-700: #2670DC;
     --blue-600: #155DFC;
@@ -98,7 +98,7 @@
     margin: 0;
   }
 
-  /* drop zone — frosted glass */
+  /* drop zone - frosted glass */
   .drop {
     margin-top: 32px;
     display: block;
@@ -154,7 +154,7 @@
     transition: width .25s ease-out;
   }
 
-  /* agent log — neumorphic skeleton card */
+  /* agent log - neumorphic skeleton card */
   .agent-log {
     margin: 14px 0 0;
     padding: 14px 18px;
@@ -170,7 +170,7 @@
   }
   .agent-log .step { color: var(--blue-700); }
 
-  /* hero — savings reveal */
+  /* hero - savings reveal */
   .hero {
     margin: 28px 0 0;
     padding: 36px 40px;
@@ -214,9 +214,10 @@
   /* list of subs */
   .list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 
-  /* card — neumorphic skeleton */
+  /* card - neumorphic skeleton */
   .card {
     background: var(--skeleton);
+    border: 1.5px solid #000;
     border-radius: var(--r-md);
     box-shadow: var(--shadow-card);
     padding: 18px 22px;
@@ -227,7 +228,7 @@
     display: flex; align-items: flex-start; gap: 14px;
   }
 
-  /* verdict pills — semantic, blue-tinted neutrals */
+  /* verdict pills - semantic, blue-tinted neutrals */
   .pill {
     display: inline-block;
     padding: 4px 12px;
@@ -342,7 +343,7 @@
   <header>
     <div class="eyebrow">killBill · agent</div>
     <h1>Find every subscription you forgot you had.</h1>
-    <p>Drop a 12-month bank statement. An agent figures out what you'd save by killing the forgotten ones — and drafts the cancellation emails for you.</p>
+    <p>Drop a 12-month bank statement. An agent figures out what you'd save by killing the forgotten ones - and drafts the cancellation emails for you.</p>
   </header>
 
   <label class="drop" id="drop">
@@ -438,7 +439,7 @@ async function handleFile(f) {
     pushLog('no report');
     return;
   }
-  pushLog('agent finished — ' + report.subscription_count + ' subscriptions reviewed');
+  pushLog('agent finished - ' + report.subscription_count + ' subscriptions reviewed');
   renderReport(report);
 }
 
